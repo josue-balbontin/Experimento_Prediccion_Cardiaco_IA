@@ -27,6 +27,5 @@ Thumbs.db
 
 # Archivos pesados / binarios que no deben subir a git
 *.zip
-*.apk
 dataset separado/
 dataset/
