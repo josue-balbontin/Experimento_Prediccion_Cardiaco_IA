@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Meta tags SEO y viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CardioSound">
+    <meta name="description" content="CardioSound AI — Clasificación inteligente de sonidos cardíacos mediante inteligencia artificial. Detecta soplos, extrasístoles y artefactos en tiempo real.">
+    <meta name="keywords" content="cardiología, IA, sonidos cardíacos, soplo, extrasístole, auscultación, deep learning, TensorFlow">
+    <meta name="author" content="CardioSound AI">
+    <meta name="apple-mobile-web-app-title" content="CardioSound AI">
+    <meta property="og:title" content="CardioSound AI — Clasificación de Sonidos Cardíacos">
+    <meta property="og:description" content="Análisis inteligente de sonidos cardíacos con inteligencia artificial en el navegador.">
+    <meta property="og:type" content="website">
+
+    <title>CardioSound AI — Clasificación de Sonidos Cardíacos con IA</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos principales -->
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <!-- TensorFlow.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+</head>
+<body>
+
+    <!-- ============================================================ -->
+    <!-- OVERLAY DE CARGA - se muestra mientras el modelo se carga    -->
+    <!-- ============================================================ -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="heart-loader">
+                <!-- Icono SVG de corazón animado -->
+                <svg class="heart-icon" viewBox="0 0 64 64" width="80" height="80">
+                    <path d="M32 56 C16 44, 2 32, 2 20 C2 10, 10 2, 20 2 C26 2, 30 6, 32 10 C34 6, 38 2, 44 2 C54 2, 62 10, 62 20 C62 32, 48 44, 32 56Z"
+                          fill="#ef4444" stroke="none"/>
+                </svg>
+                <!-- Línea de onda cardíaca -->
+                <svg class="ecg-wave" viewBox="0 0 200 60" width="200" height="60">
+                    <polyline points="0,30 30,30 40,30 50,10 55,50 60,20 70,30 100,30 110,30 120,10 125,50 130,20 140,30 170,30 200,30"
+                              fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2 class="loading-title">CardioSound AI</h2>
+            <p id="loading-message" class="loading-message">Inicializando modelo de IA...</p>
+            <div class="loading-bar-container">
+                <div id="loading-bar" class="loading-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CONTENEDOR PRINCIPAL DE LA APP                                -->
+    <!-- ============================================================ -->
+    <div id="app-container" class="app-container hidden">
+
+        <!-- ======== HEADER ======== -->
+        <header class="app-header">
+            <div class="header-left">
+                <svg class="header-heart-icon" viewBox="0 0 64 64" width="36" height="36">
+                    <path d="M32 56 C16 44, 2 32, 2 20 C2 10, 10 2, 20 2 C26 2, 30 6, 32 10 C34 6, 38 2, 44 2 C54 2, 62 10, 62 20 C62 32, 48 44, 32 56Z"
+                          fill="#ef4444" stroke="none"/>
+                </svg>
+                <div class="header-title-group">
+                    <h1 class="header-title">CardioSound <span class="accent-text">AI</span></h1>
+                    <p class="header-subtitle">Clasificación de Sonidos Cardíacos</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div id="model-status" class="model-status status-loading">
+                    <span class="status-dot"></span>
+                    <span id="model-status-text" class="status-text">Cargando modelo...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ======== NAVEGACIÓN POR TABS ======== -->
+        <nav class="tab-navigation">
+            <button id="tab-btn-mic" class="tab-btn active" data-tab="mic">
+                <span class="tab-icon">🎙️</span>
+                <span class="tab-label">Micrófono</span>
+            </button>
+            <button id="tab-btn-file" class="tab-btn" data-tab="file">
+                <span class="tab-icon">📂</span>
+                <span class="tab-label">Archivo</span>
+            </button>
+            <button id="tab-btn-samples" class="tab-btn" data-tab="samples">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">Muestras</span>
+            </button>
+        </nav>
+
+        <!-- ======== CONTENIDO DE TABS ======== -->
+        <main class="tab-content-wrapper">
+
+            <!-- Tab: Micrófono -->
+            <section id="tab-mic" class="tab-content active">
+                <div class="mic-container">
+                    <p class="mic-instruction">Presiona el botón para grabar sonidos cardíacos durante mínimo 3 segundos</p>
+                    <button id="btn-record" class="record-btn" aria-label="Grabar audio">
+                        <svg class="mic-icon" viewBox="0 0 24 24" width="40" height="40">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="currentColor"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="currentColor"/>
+                        </svg>
+                        <div class="record-pulse-ring"></div>
+                    </button>
+                    <button id="btn-monitor" class="monitor-btn" aria-label="Escuchar micrófono">🎧 Escuchar</button>
+                    <div id="post-recording-controls" class="post-recording-controls hidden" style="display: none; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                        <button id="btn-play-audio" class="monitor-btn" aria-label="Reproducir grabación" style="margin-top: 0; flex: 1; min-width: 140px;">▶ Reproducir</button>
+                        <button id="btn-download-audio" class="monitor-btn" aria-label="Descargar grabación" style="margin-top: 0; flex: 1; min-width: 140px;">⬇️ Descargar</button>
+                    </div>
+                    <div id="recording-timer" class="recording-timer hidden">
+                        <span class="rec-dot"></span>
+                        <span id="timer-text" class="timer-text">0:00</span>
+                    </div>
+                    <p id="mic-status-text" class="mic-status-text">Listo para grabar</p>
+                    
+                    <div class="device-selectors" style="margin-top: 1rem; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto;">
+                        <div class="input-group" style="margin-bottom: 0.5rem;">
+                            <label for="audio-input-select" style="font-size: 0.8rem; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.2rem;">🎤 Micrófono (Entrada)</label>
+                            <select id="audio-input-select" style="width: 100%; padding: 0.5rem; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none;"></select>
+                        </div>
+                        <div class="input-group">
+                            <label for="audio-output-select" style="font-size: 0.8rem; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.2rem;">🔊 Altavoz (Salida)</label>
+                            <select id="audio-output-select" style="width: 100%; padding: 0.5rem; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none;"></select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Archivo -->
+            <section id="tab-file" class="tab-content">
+                <div class="file-container">
+                    <div id="drop-zone" class="drop-zone">
+                        <svg class="upload-icon" viewBox="0 0 24 24" width="48" height="48">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <polyline points="14,2 14,8 20,8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M12 18v-6M9 15l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p class="drop-text-primary">Arrastra un archivo de audio aquí</p>
+                        <p class="drop-text-secondary">o haz clic para seleccionar</p>
+                        <p class="drop-text-formats">Formatos: .wav, .mp3, .ogg, .webm</p>
+                        <input type="file" id="file-input" accept=".wav,.mp3,.ogg,.webm,audio/*" hidden>
+                    </div>
+                    <div id="file-info" class="file-info hidden">
+                        <span class="file-name" id="file-name-text"></span>
+                        <button id="btn-clear-file" class="btn-clear-file" aria-label="Quitar archivo">✕</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Muestras -->
+            <section id="tab-samples" class="tab-content">
+                <div class="samples-grid">
+                    <!-- Tarjeta: Normal -->
+                    <div class="sample-card" data-class="normal">
+                        <div class="sample-card-stripe" style="background:#10b981"></div>
+                        <div class="sample-card-body">
+                            <h3 class="sample-card-title">💚 Normal</h3>
+                            <p class="sample-card-desc">Sonido cardíaco saludable</p>
+                            <div class="sample-card-actions">
+                                <button class="btn-sample-play" data-src="samples/normal_sample.wav" aria-label="Reproducir muestra normal">
+                                    ▶ Reproducir
+                                </button>
+                                <button class="btn-sample-analyze" data-src="samples/normal_sample.wav" aria-label="Analizar muestra normal">
+                                    🔬 Analizar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjeta: Soplo (Murmur) -->
+                    <div class="sample-card" data-class="murmur">
+                        <div class="sample-card-stripe" style="background:#f59e0b"></div>
+                        <div class="sample-card-body">
+                            <h3 class="sample-card-title">🧡 Soplo</h3>
+                            <p class="sample-card-desc">Soplo cardíaco detectado</p>
+                            <div class="sample-card-actions">
+                                <button class="btn-sample-play" data-src="samples/murmur_sample.wav" aria-label="Reproducir muestra soplo">
+                                    ▶ Reproducir
+                                </button>
+                                <button class="btn-sample-analyze" data-src="samples/murmur_sample.wav" aria-label="Analizar muestra soplo">
+                                    🔬 Analizar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: Artefacto -->
+                    <div class="sample-card" data-class="artifact">
+                        <div class="sample-card-stripe" style="background:#6b7280"></div>
+                        <div class="sample-card-body">
+                            <h3 class="sample-card-title">🩶 Artefacto</h3>
+                            <p class="sample-card-desc">Ruido o interferencia</p>
+                            <div class="sample-card-actions">
+                                <button class="btn-sample-play" data-src="samples/artifact_sample.wav" aria-label="Reproducir muestra artefacto">
+                                    ▶ Reproducir
+                                </button>
+                                <button class="btn-sample-analyze" data-src="samples/artifact_sample.wav" aria-label="Analizar muestra artefacto">
+                                    🔬 Analizar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ======== ESPECTROGRAMA ======== -->
+        <section class="spectrogram-section">
+            <div class="spectrogram-header">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24" width="20" height="20" class="section-icon">
+                        <rect x="1" y="6" width="3" height="12" rx="1" fill="currentColor" opacity="0.6"/>
+                        <rect x="6" y="3" width="3" height="18" rx="1" fill="currentColor" opacity="0.8"/>
+                        <rect x="11" y="8" width="3" height="8" rx="1" fill="currentColor"/>
+                        <rect x="16" y="4" width="3" height="16" rx="1" fill="currentColor" opacity="0.7"/>
+                        <rect x="21" y="7" width="3" height="10" rx="1" fill="currentColor" opacity="0.5"/>
+                    </svg>
+                    Espectrograma Mel
+                </h2>
+                <button id="btn-download-spec" class="btn-download-spec hidden" aria-label="Descargar Espectrograma" title="Descargar Espectrograma">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="spectrogram-canvas-wrapper">
+                <canvas id="spectrogram-canvas" class="spectrogram-canvas" width="800" height="300"></canvas>
+                <div id="spectrogram-placeholder" class="spectrogram-placeholder">
+                    <p>El espectrograma aparecerá aquí al analizar audio</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======== RESULTADOS ======== -->
+        <section id="results-section" class="results-section hidden">
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" class="section-icon">
+                    <path d="M9 11H7v6h2v-6zm4-4h-2v10h2V7zm4 8h-2v2h2v-2zm2-14H5a2 2 0 00-2 2v16a2 2 0 002 2h14a2 2 0 002-2V3a2 2 0 00-2-2z" fill="currentColor"/>
+                </svg>
+                Resultados del Análisis
+            </h2>
+
+            <!-- Banner de diagnóstico principal -->
+            <div id="diagnosis-banner" class="diagnosis-banner hidden">
+                <div class="diagnosis-icon" id="diagnosis-icon">💚</div>
+                <div class="diagnosis-info">
+                    <span class="diagnosis-label">Clasificación Predominante</span>
+                    <span id="diagnosis-name" class="diagnosis-name">—</span>
+                </div>
+                <div id="diagnosis-confidence" class="diagnosis-confidence">0%</div>
+            </div>
+
+            <!-- Grid de resultados 2×2 -->
+            <div class="results-grid">
+                <div id="result-card-0" class="result-card">
+                    <div class="result-card-stripe"></div>
+                    <div class="result-card-body">
+                        <span class="result-class-name" id="result-name-0">—</span>
+                        <span class="result-score" id="result-score-0">0%</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" id="result-bar-0" style="width:0%"></div>
+                    </div>
+                </div>
+                <div id="result-card-1" class="result-card">
+                    <div class="result-card-stripe"></div>
+                    <div class="result-card-body">
+                        <span class="result-class-name" id="result-name-1">—</span>
+                        <span class="result-score" id="result-score-1">0%</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" id="result-bar-1" style="width:0%"></div>
+                    </div>
+                </div>
+                <div id="result-card-2" class="result-card">
+                    <div class="result-card-stripe"></div>
+                    <div class="result-card-body">
+                        <span class="result-class-name" id="result-name-2">—</span>
+                        <span class="result-score" id="result-score-2">0%</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" id="result-bar-2" style="width:0%"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ======== FOOTER ======== -->
+        <footer class="app-footer">
+            <p class="footer-disclaimer">⚠️ Esta herramienta es solo con fines educativos y de investigación. No reemplaza el diagnóstico médico profesional.</p>
+            <p class="footer-info">CardioSound AI · MobileNetV2 · TensorFlow.js · Clasificación de 3 clases</p>
+        </footer>
+    </div>
+
+    <!-- ======== CONTENEDOR DE TOASTS ======== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ======== MÓDULO PRINCIPAL JS ======== -->
+    <script type="module" src="./js/app.js"></script>
+
+    <!-- ======== REGISTRO DEL SERVICE WORKER ======== -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[SW] Registrado con éxito:', reg.scope))
+                    .catch(err => console.warn('[SW] Error al registrar:', err));
+            });
+        }
+    </script>
+</body>
+</html>

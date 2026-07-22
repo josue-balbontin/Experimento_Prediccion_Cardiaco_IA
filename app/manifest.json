@@ -1,0 +1,20 @@
+{
+    "name": "CardioSound AI",
+    "short_name": "CardioSound",
+    "description": "Detección de anomalías cardíacas con IA — Clasificación inteligente de sonidos cardíacos",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0a0e1a",
+    "theme_color": "#10b981",
+    "orientation": "portrait-primary",
+    "lang": "es",
+    "categories": ["medical", "health", "education"],
+    "icons": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230a0e1a'/%3E%3Cpath d='M256 400 C176 344 96 288 96 208 C96 160 136 120 180 120 C210 120 236 140 256 168 C276 140 302 120 332 120 C376 120 416 160 416 208 C416 288 336 344 256 400Z' fill='%23ef4444'/%3E%3Cpolyline points='80,280 160,280 190,240 210,320 230,260 250,280 280,280 310,280 330,240 350,320 370,260 390,280 432,280' fill='none' stroke='%2310b981' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}
