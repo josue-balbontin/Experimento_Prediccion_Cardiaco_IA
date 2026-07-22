@@ -1,6 +1,13 @@
 # CardioSound AI 🫀
 
-CardioSound AI es una aplicación de inteligencia artificial capaz de clasificar y analizar sonidos cardíacos en tiempo real o a partir de archivos grabados (por ejemplo, con un estetoscopio electrónico). Utiliza un modelo **MobileNetV2** entrenado mediante *Transfer Learning* y ejecutado directamente en el dispositivo (Edge AI) gracias a **TensorFlow.js**.
+**Proyecto derivado del artículo de investigación:**
+> *"Clasificación experimental de fonocardiogramas mediante espectrogramas Mel y MobileNetV2"*
+> **Autores:** Edgar Jaldin Torrico & Josue Galo Balbontin Ugarteche (Universidad Católica Boliviana "San Pablo").
+
+> [!WARNING]
+> **Limitación Clínica:** Este proyecto es estrictamente una **prueba de concepto experimental** y **no tiene validez como herramienta de diagnóstico médico**. Aunque el modelo filtra el ruido ambiental (artefactos) con un 99.6% de eficacia, presenta una sensibilidad clínica deficiente para soplos leves (60.6%), tendiendo a clasificarlos erróneamente como normales. Requiere validación clínica rigurosa.
+
+CardioSound AI es una aplicación de inteligencia artificial capaz de clasificar y analizar sonidos cardíacos. Utiliza un modelo **MobileNetV2** sobre espectrogramas Mel, entrenado mediante *Transfer Learning* y ejecutado directamente en el dispositivo (Edge AI) gracias a **TensorFlow.js**.
 
 La aplicación cuenta con una versión Web (PWA) y una versión Nativa para Android que permite forzar la salida de audio por el altavoz incluso si hay un estetoscopio conectado en el puerto Jack o USB-C.
 
@@ -82,6 +89,9 @@ Si deseas reentrenar el modelo con nuevos sonidos de estetoscopio:
 
 ---
 
-## 🔧 Soporte Especial (Hack de Hardware)
+## 🔧 Soporte Especial (Hack de Hardware Experimental)
 
-Si usas un estetoscopio conectado al puerto de auriculares de tu celular (que bloquea la salida de audio natural del teléfono), la app de Android cuenta con un puente en Java (`CardioNativePlugin`) que **fuerza** al hardware a reproducir el sonido por el altavoz exterior. Simplemente pulsa el botón de escuchar en la aplicación mientras el estetoscopio está conectado.
+> [!NOTE]
+> El estetoscopio digital ensamblado y referenciado en este proyecto fue construido **exclusivamente como un punto de inicio para la experimentación física**, sin implicar validación clínica prospectiva.
+
+Si usas un estetoscopio modificado conectado al puerto de auriculares de tu celular (que bloquea la salida de audio natural del teléfono), la app de Android cuenta con un puente en Java (`CardioNativePlugin`) que **fuerza** al hardware a reproducir el sonido por el altavoz exterior. Simplemente pulsa el botón de escuchar en la aplicación mientras el estetoscopio está conectado.
